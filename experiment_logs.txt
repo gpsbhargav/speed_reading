@@ -33,10 +33,25 @@ Best dev metrics: 0.88392
 =================================================================
 RL 
 =================================================================
-python train_rl.py --save_dir /home/bhargav/projects/speed_reading_results/rl1/ --training_data ../preprocessed_data/preprocessed_train.pkl --dev_data ../preprocessed_data/preprocessed_test.pkl --embedding_matrix ../preprocessed_data/embedding_matrix.npy --log_every 5 --save_every 200 --early_stopping_patience 10 --data_loader_num_workers 8 --model_to_use 1 --warm_start_checkpoint /home/bhargav/projects/speed_reading_results/trial/best.pt --rl_algo ac --epochs 50
+python train_rl.py --save_dir /home/bhargav/projects/speed_reading_results/rl_trial/ --training_data ../preprocessed_data/preprocessed_train.pkl --dev_data ../preprocessed_data/preprocessed_train.pkl --embedding_matrix ../preprocessed_data/embedding_matrix.npy --log_every 1 --save_every 1 --early_stopping_patience 10 --data_loader_num_workers 8 --model_to_use 1 --warm_start_checkpoint /home/bhargav/projects/speed_reading_results/trial/best.pt --rl_algo ac --epochs 500 --early_stopping_patience 100000 --small_data_size 100
 
 
-python train_rl.py --save_dir /home/bhargav/projects/speed_reading_results/rl1/ --training_data ../preprocessed_data/preprocessed_train.pkl --dev_data ../preprocessed_data/preprocessed_test.pkl --embedding_matrix ../preprocessed_data/embedding_matrix.npy --log_every 5 --save_every 200 --early_stopping_patience 10 --data_loader_num_workers 8 --model_to_use 1 --warm_start_checkpoint /home/bhargav/projects/speed_reading_results/trial/best.pt --rl_algo ac --epochs 50 --loss_weight_entropy 0.0 --loss_weight_actor 1.0 --loss_weight_critic 1.0 --loss_weight_classification 1.0 --step_reward_multiplier 0.0
+
+
+------------------------------------------------
+
+# on t1
+python train_rl.py --save_dir /home/bhargav/projects/speed_reading_results/rl1/ --training_data ../preprocessed_data/preprocessed_train.pkl --dev_data ../preprocessed_data/preprocessed_test.pkl --embedding_matrix ../preprocessed_data/embedding_matrix.npy --log_every 5 --save_every 200 --early_stopping_patience 100 --data_loader_num_workers 8 --model_to_use 1 --warm_start_checkpoint /home/bhargav/projects/speed_reading_results/trial/best.pt --rl_algo ac --epochs 100
+
+
+
+# on t2
+python train_rl.py --save_dir /home/bhargav/projects/speed_reading_results/rl2/ --training_data ../preprocessed_data/preprocessed_train.pkl --dev_data ../preprocessed_data/preprocessed_test.pkl --embedding_matrix ../preprocessed_data/embedding_matrix.npy --log_every 5 --save_every 200 --early_stopping_patience 100 --data_loader_num_workers 8 --model_to_use 1 --warm_start_checkpoint /home/bhargav/projects/speed_reading_results/trial/best.pt --rl_algo ac --epochs 100 --loss_weight_actor 5.0
+
+
+
+
+
 
 
 

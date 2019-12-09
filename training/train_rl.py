@@ -54,7 +54,7 @@ parser.add_argument("--checkpoint_name", type=str, default="snapshot.pt")
 parser.add_argument("--fp16", action="store_true")
 parser.add_argument("--log_every", type=int, default=50)
 parser.add_argument("--save_every", type=int, default=500)
-parser.add_argument("--early_stopping_patience", type=int, default=4)
+parser.add_argument("--early_stopping_patience", type=int, default=20)
 parser.add_argument("--small_data_size", type=int, default=-1)
 parser.add_argument("--eval_only", action="store_true")
 parser.add_argument("--training_topup", action="store_true")
@@ -69,9 +69,11 @@ parser.add_argument("--sent_skip_reward_multiplier", type=float, default=0.5)
 parser.add_argument("--step_reward_multiplier", type=float, default=0.1)
 
 parser.add_argument("--loss_weight_entropy", type=float, default=0.1)
-parser.add_argument("--loss_weight_actor", type=float, default=5.0)
+parser.add_argument("--loss_weight_actor", type=float, default=10.0)
 parser.add_argument("--loss_weight_critic", type=float, default=1.0)
 parser.add_argument("--loss_weight_classification", type=float, default=1.0)
+
+parser.add_argument("--greedy_action", action="store_true")
 
 parser.add_argument("--rl_algo", type=str, choices=["ac"], required=True)
 

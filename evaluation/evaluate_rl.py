@@ -24,6 +24,20 @@ class Evaluator:
         self.model = None
         self.batch_size = config.dev_batch_size
         self.device = torch.device("cuda:{}".format(0))
+        self.log_file = config.save_dir + "dev_acc_logs.jsonl"
+
+        if not self.config.training_topup:
+            self.create_log_file()
+
+    def create_log_file(self):
+        with open(self.log_file, "w") as out_file:
+            pass
+
+    def write_log(self, dict_in):
+        with open(self.log_file, "a") as out_file:
+            json_str = json.dumps(dict_in)
+            out_file.write(json_str)
+            out_file.write("\n")
 
     def set_model(self, model):
         self.model = model
@@ -69,12 +83,13 @@ class Evaluator:
                 read_tokens = model_outputs["actions"]
                 read_tokens = self.form_batch_times_seq_len_tensor(read_tokens)
                 num_read = read_tokens.sum(axis=-1)
-                all_num_read.append(num_read)
+                all_num_read.append(num_read.cpu())
                 all_class_probabilities.append(class_probabilities)
 
         all_class_probabilities = np.concatenate(all_class_probabilities, axis=0)
 
-        all_num_read = np.concatenate(all_num_read, axis=-1)
+        # all_num_read = np.concatenate(all_num_read, axis=-1)
+        all_num_read = torch.cat(all_num_read, dim=-1)
         num_gt_words = self.dataset.get_seq_len()
         fraction_of_words_read = all_num_read / num_gt_words
         avg_read_fraction = fraction_of_words_read.mean().item()
@@ -86,7 +101,11 @@ class Evaluator:
             pred=predicted_classes, gt=gt_classes
         )
 
-        return {
+        out_dict = {
             "classification_accuracy": classification_accuracy,
             "avg_read_fraction": avg_read_fraction,
         }
+
+        self.write_log(out_dict)
+
+        return out_dict

@@ -168,8 +168,10 @@ class Model1(nn.Module):
             read_prob_dist = Bernoulli(probs=read_probs)
             entropy = read_prob_dist.entropy()
 
-            action = read_prob_dist.sample()
-            # action = (read_probs > 0.5).type(torch.float)
+            if self.config.greedy_action:
+                action = (read_probs > 0.5).type(torch.float)
+            else:
+                action = read_prob_dist.sample()
 
             action_log_probs = read_prob_dist.log_prob(action)
             action_log_probs = action_log_probs * word_masks[time_step]
@@ -177,7 +179,7 @@ class Model1(nn.Module):
             actions_masked = action * word_masks[time_step]
             actions_masked = actions_masked.unsqueeze(1)
 
-            old_h = actions_masked * old_h + (1 - actions_masked) * old_h
+            new_h = actions_masked * new_h + (1 - actions_masked) * old_h
             new_c = actions_masked * new_c + (1 - actions_masked) * old_c
 
             old_h = new_h
