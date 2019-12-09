@@ -169,6 +169,7 @@ class Model1(nn.Module):
             entropy = read_prob_dist.entropy()
 
             action = read_prob_dist.sample()
+            # action = (read_probs > 0.5).type(torch.float)
 
             action_log_probs = read_prob_dist.log_prob(action)
             action_log_probs = action_log_probs * word_masks[time_step]

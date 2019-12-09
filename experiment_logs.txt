@@ -25,14 +25,20 @@ export CUDA_VISIBLE_DEVICES=4,5,6,7
 =================================================================
 Supervised
 =================================================================
+python train_supervised.py --save_dir /home/bhargav/projects/speed_reading_results/trial/ --train_batch_size 100 --dev_batch_size 100 --lr 1e-3 --epochs 50 --max_grad_norm 0.1 --training_data ../preprocessed_data/preprocessed_train.pkl --dev_data ../preprocessed_data/preprocessed_test.pkl --embedding_matrix ../preprocessed_data/embedding_matrix.npy --log_every 50 --save_every 200 --early_stopping_patience 10 --data_loader_num_workers 8 --model_to_use 1
 
-python train_supervised.py --save_dir /home/bhargav/projects/speed_reading_results/trial/ --train_batch_size 100 --dev_batch_size 100 --lr 1e-3 --epochs 50 --max_grad_norm 1.0 --training_data ../preprocessed_data/preprocessed_train.pkl --dev_data ../preprocessed_data/preprocessed_test.pkl --embedding_matrix ../preprocessed_data/embedding_matrix.npy --log_every 50 --save_every 500 --early_stopping_patience 10 --data_loader_num_workers 8 --model_to_use 1
 
 Best dev metrics: 0.88392
 
 =================================================================
 RL 
 =================================================================
+python train_rl.py --save_dir /home/bhargav/projects/speed_reading_results/rl1/ --training_data ../preprocessed_data/preprocessed_train.pkl --dev_data ../preprocessed_data/preprocessed_test.pkl --embedding_matrix ../preprocessed_data/embedding_matrix.npy --log_every 5 --save_every 200 --early_stopping_patience 10 --data_loader_num_workers 8 --model_to_use 1 --warm_start_checkpoint /home/bhargav/projects/speed_reading_results/trial/best.pt --rl_algo ac --epochs 50
+
+
+python train_rl.py --save_dir /home/bhargav/projects/speed_reading_results/rl1/ --training_data ../preprocessed_data/preprocessed_train.pkl --dev_data ../preprocessed_data/preprocessed_test.pkl --embedding_matrix ../preprocessed_data/embedding_matrix.npy --log_every 5 --save_every 200 --early_stopping_patience 10 --data_loader_num_workers 8 --model_to_use 1 --warm_start_checkpoint /home/bhargav/projects/speed_reading_results/trial/best.pt --rl_algo ac --epochs 50 --loss_weight_entropy 0.0 --loss_weight_actor 1.0 --loss_weight_critic 1.0 --loss_weight_classification 1.0 --step_reward_multiplier 0.0
+
+
 
 =================================================================
 =================================================================

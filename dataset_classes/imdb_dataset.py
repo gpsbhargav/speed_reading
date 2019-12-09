@@ -27,7 +27,7 @@ class IMDBDataset(Dataset):
         for idx in indices:
             gt = self.dataset[idx]["label"]
             out_list.append(gt)
-        return out_list
+        return torch.tensor(out_list)
 
     def get_seq_len(self, indices=None):
         if indices is None:
@@ -36,7 +36,7 @@ class IMDBDataset(Dataset):
         for idx in indices:
             gt = self.dataset[idx]["num_tokens"]
             out_list.append(gt)
-        return out_list
+        return torch.tensor(out_list, dtype=torch.float)
 
     def __getitem__(self, index):
         out_dict = {

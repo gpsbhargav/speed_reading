@@ -28,6 +28,7 @@ class ActorCritic1:
             out_file.write("\n")
 
     def compute_accuracy(self, class_probabilities, indices):
+        class_probabilities = class_probabilities.detach()
         predicted_classes = torch.argmax(class_probabilities, dim=-1)
         gt_classes = self.dataset.get_gt(indices=indices)
 
@@ -40,6 +41,7 @@ class ActorCritic1:
         return torch.tensor(accuracies)
 
     def compute_classification_reward(self, class_probabilities, indices, accuracies):
+        class_probabilities = class_probabilities.detach()
         gt_classes = self.dataset.get_gt(indices=indices)
         classification_rewards = torch.zeros_like(
             accuracies, device=class_probabilities.device
@@ -50,7 +52,7 @@ class ActorCritic1:
             else:
                 classification_rewards[i] = class_probabilities[i][gt_classes[i]]
 
-        return classification_rewards
+        return classification_rewards.detach()
 
     def compute_step_rewards(self, actions):
         """
@@ -153,7 +155,7 @@ class ActorCritic1:
         return entropies.mean()
 
     def compute_classification_loss(self, class_probabilities, indices):
-        gt_classes = self.dataset.get_gt(indices=indices)
+        gt_classes = self.dataset.get_gt(indices=indices).to(class_probabilities.device)
         cross_entropy_loss = self.cross_entropy_loss(class_probabilities, gt_classes)
         return cross_entropy_loss
 
@@ -167,23 +169,11 @@ class ActorCritic1:
         indices_in,
     ):
 
-        # compute sf reward for each example
-        # compute reward r_t in {-1/num_sents , -sent_skip_reward_multiplier/num_sents} for each time step
-        # compute cumulative reward for each step.
-        # add sf reward to each cumulative reward
-        # detach value tensor. subtract value from corresponding cumulative reward
-        # multiply action log probs with corresponding (reward-value)
-        # sum each row in the above matrix. Then compute the mean to get actor loss l_actor
-        # flatten cumulative reward matrix. flatten value matrix. compute MSE between these to get critic loss l_critic
-        # average all entropies to get l_entropy
-        # take weighted sum of l_actor, l_critic and l_entropy to get l_total
-        # return l_total, mean sf F1, mean sf recall
-
         classification_accuracies = self.compute_accuracy(
             class_probabilities=class_probabilities_in, indices=indices_in
         )
 
-        mean_classification_accuracy = classification_accuracies.mean()
+        mean_classification_accuracy = classification_accuracies.mean().item()
 
         classification_rewards = self.compute_classification_reward(
             class_probabilities=class_probabilities_in,
@@ -191,13 +181,18 @@ class ActorCritic1:
             accuracies=classification_accuracies,
         )
 
-        action_log_probs = self.form_batch_times_num_sents_tensor(action_log_probs_in)
-        state_values = self.form_batch_times_num_sents_tensor(state_values_in)
-        entropies = self.form_batch_times_num_sents_tensor(entropies_in)
-        actions = self.form_batch_times_num_sents_tensor(actions_in)
+        step_rewards = self.compute_step_rewards(actions_in)
+        cumulative_rewards = self.compute_cumulative_reward(
+            step_rewards, classification_rewards
+        )
+
+        action_log_probs = self.form_batch_times_seq_len_tensor(action_log_probs_in)
+        state_values = self.form_batch_times_seq_len_tensor(state_values_in)
+        entropies = self.form_batch_times_seq_len_tensor(entropies_in)
+        actions = self.form_batch_times_seq_len_tensor(actions_in)
 
         num_words_read = torch.sum(actions, dim=-1).to(torch.float)
-        num_gt_words = self.dataset.get_seq_len(indices_in)
+        num_gt_words = self.dataset.get_seq_len(indices_in).to(num_words_read.device)
         fraction_of_words_read = num_words_read / num_gt_words
         avg_read_fraction = fraction_of_words_read.mean().item()
 

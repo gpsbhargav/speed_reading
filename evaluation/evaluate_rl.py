@@ -62,7 +62,7 @@ class Evaluator:
                     key: value.to(self.device, non_blocking=True)
                     for key, value in batch.items()
                 }
-                model_outputs = self.model(batch)
+                model_outputs = self.model(batch, supervised=False)
                 class_probabilities = (
                     model_outputs["class_probabilities"].detach().cpu().numpy()
                 )

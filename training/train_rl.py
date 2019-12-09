@@ -19,7 +19,9 @@ from models.models import Model1
 from dataset_classes.imdb_dataset import IMDBDataset
 from utils.file_utils import create_dir, Logger
 from evaluation.evaluate_rl import Evaluator
-from utils.metrics import compute_accuracy
+from training.rl_classes import ActorCritic1
+
+# from utils.metrics import compute_accuracy
 
 import pdb
 
@@ -32,51 +34,23 @@ parser = argparse.ArgumentParser()
 
 
 parser.add_argument("--save_dir", type=str, required=True)
-parser.add_argument("--train_batch_size", type=int, default=16)
-parser.add_argument("--dev_batch_size", type=int, default=64)
-parser.add_argument("--lr", type=float, default=1e-2)
-parser.add_argument("--epochs", type=int, default=4)
+parser.add_argument("--train_batch_size", type=int, default=100)
+parser.add_argument("--dev_batch_size", type=int, default=100)
+parser.add_argument("--lr", type=float, default=5e-4)
+parser.add_argument("--epochs", type=int, default=10)
 parser.add_argument("--gradient_accumulation_steps", type=int, default=1)
-parser.add_argument("--warmup_proportion", type=float, default=0.1)
-parser.add_argument("--max_grad_norm", type=float, default=1.0)
-parser.add_argument("--model_hidden_size", type=int, default=768)
+parser.add_argument("--max_grad_norm", type=float, default=0.1)
+parser.add_argument("--word_embedding_size", type=int, default=300)
+parser.add_argument("--lstm_hidden_size", type=int, default=128)
+parser.add_argument("--state_vector_size", type=int, default=25)
 parser.add_argument("--dropout", type=float, default=0.1)
-parser.add_argument("--num_rnn_layers", type=int, default=2)
-parser.add_argument("--use_lr_sched", action="store_true")
-
-parser.add_argument("--sentence_selector_model", type=int, choices=[2, 3, 4], default=2)
-
-parser.add_argument("--warm_start_checkpoint", type=str, default="")
-
-parser.add_argument("--sent_skip_reward_multiplier", type=float, default=1.0)
-parser.add_argument("--step_reward_multiplier", type=float, default=1.0)
-
-parser.add_argument("--loss_weight_entropy", type=float, default=1.0)
-parser.add_argument("--loss_weight_actor", type=float, default=1.0)
-parser.add_argument("--loss_weight_critic", type=float, default=1.0)
-
-parser.add_argument("--explore_prob", type=float, default=0.0)
-parser.add_argument("--sf_threshold", type=float, default=-1.0)
-
-parser.add_argument(
-    "--sf_reward",
-    type=str,
-    choices=["em", "f1", "prec", "recall", "ans_f1"],
-    required=True,
-)
-
-parser.add_argument(
-    "--rl_algo", type=str, choices=["ac", "reinforce", "reinforce2"], required=True
-)
 
 parser.add_argument("--resume_training", action="store_true")
 parser.add_argument("--training_data", type=str, required=True)
 parser.add_argument("--dev_data", type=str, required=True)
+parser.add_argument("--embedding_matrix", type=str, required=True)
 parser.add_argument("--checkpoint_name", type=str, default="snapshot.pt")
-parser.add_argument("--fe_model", type=str, choices=["xlnet", "bert"], default="xlnet")
-parser.add_argument("--pretrained_model_dir", type=str, required=True)
-parser.add_argument("--training_features_file", type=str, default="")
-parser.add_argument("--dev_features_file", type=str, default="")
+
 parser.add_argument("--fp16", action="store_true")
 parser.add_argument("--log_every", type=int, default=50)
 parser.add_argument("--save_every", type=int, default=500)
@@ -84,28 +58,27 @@ parser.add_argument("--early_stopping_patience", type=int, default=4)
 parser.add_argument("--small_data_size", type=int, default=-1)
 parser.add_argument("--eval_only", action="store_true")
 parser.add_argument("--training_topup", action="store_true")
-parser.add_argument(
-    "--feature_extraction",
-    type=str,
-    choices=["mean", "sum", "cls", "q_s_mean"],
-    required=True,
-)
-parser.add_argument("--fe_cpu", action="store_true")
-parser.add_argument("--data_loader_num_workers", type=int, default=0)
-parser.add_argument("--use_qa_xlnet", action="store_true")
-parser.add_argument("--qa_xlnet_model_file", type=str, default="")
 
-parser.add_argument("--fe_model_max_seq_len", type=int, default=70)
-parser.add_argument("--max_question_len", type=int, default=35)
-parser.add_argument("--max_num_sents", type=int, default=60)
+parser.add_argument("--data_loader_num_workers", type=int, default=0)
+parser.add_argument("--model_to_use", type=int, choices=[1], default=1)
+
+parser.add_argument("--max_seq_len", type=int, default=250)
+
+parser.add_argument("--warm_start_checkpoint", type=str, default="")
+parser.add_argument("--sent_skip_reward_multiplier", type=float, default=0.5)
+parser.add_argument("--step_reward_multiplier", type=float, default=0.1)
+
+parser.add_argument("--loss_weight_entropy", type=float, default=0.1)
+parser.add_argument("--loss_weight_actor", type=float, default=5.0)
+parser.add_argument("--loss_weight_critic", type=float, default=1.0)
+parser.add_argument("--loss_weight_classification", type=float, default=1.0)
+
+parser.add_argument("--rl_algo", type=str, choices=["ac"], required=True)
+
 
 config = parser.parse_args()
 
 config.n_gpu = torch.cuda.device_count()
-
-if not config.fe_cpu:
-    assert config.data_loader_num_workers == 0
-
 
 if config.fp16:
     try:
@@ -116,14 +89,11 @@ if config.fp16:
 
 create_dir(config.save_dir)
 
-# prediction_formatter = SFFormatter()
-# accuracy_computer = SFAccuracy()
-
 logger = Logger(config.save_dir + "training_log.log")
 
 logger.write_log("Reading data")
 
-dataset = TransformerFeaturesDataset(config, is_training=True)
+dataset = IMDBDataset(config, is_training=True)
 
 logger.write_log("Creating dataloader")
 
@@ -142,13 +112,7 @@ dataloader = DataLoader(
 
 logger.write_log("Building model")
 
-if config.sentence_selector_model == 2:
-    model = SentenceSelector2(config)
-elif config.sentence_selector_model == 3:
-    model = SentenceSelector3(config)
-elif config.sentence_selector_model == 4:
-    model = SentenceSelector4(config)
-
+model = Model1(config)
 
 num_train_steps = int(
     (len(dataset) / config.train_batch_size / config.gradient_accumulation_steps)
@@ -174,13 +138,6 @@ optimizer_grouped_parameters = [
 ]
 
 optimizer = AdamW(optimizer_grouped_parameters, lr=config.lr, eps=1e-8)
-
-if config.use_lr_sched:
-    scheduler = WarmupLinearSchedule(
-        optimizer,
-        warmup_steps=(config.warmup_proportion * num_train_steps),
-        t_total=num_train_steps,
-    )
 
 logger.write_log("Training data size:{}".format(len(dataset)))
 
@@ -208,9 +165,7 @@ if config.warm_start_checkpoint != "":
     logger.write_log("[Warm start] Loading model parameters")
     if os.path.isfile(config.warm_start_checkpoint):
         checkpoint = torch.load(config.warm_start_checkpoint, map_location="cpu")
-
         model.load_state_dict(checkpoint["model_state_dict"])
-
         if config.fp16:
             amp.load_state_dict(checkpoint["amp_state_dict"])
 
@@ -227,8 +182,8 @@ if config.resume_training:
             start_epoch = checkpoint["epoch"]
             best_dev_accuracy = checkpoint["best_acc"]
             iterations = checkpoint["iteration"]
-            if config.use_lr_sched:
-                scheduler.load_state_dict(checkpoint["scheduler_state_dict"])
+            # if config.use_lr_sched:
+            #     scheduler.load_state_dict(checkpoint["scheduler_state_dict"])
             optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
 
         if config.fp16:
@@ -250,10 +205,6 @@ evaluator = Evaluator(config)
 
 if config.rl_algo == "ac":
     rl_algorithm = ActorCritic1(config, dataset)
-elif config.rl_algo == "reinforce":
-    rl_algorithm = Reinforce1(config, dataset)
-elif config.rl_algo == "reinforce2":
-    rl_algorithm = Reinforce2(config, dataset)
 
 if not config.eval_only:
     logger.write_log("Training now")
@@ -281,15 +232,19 @@ for epoch in range(start_epoch, config.epochs):
         model_outputs = model(batch, supervised=False)
 
         rl_algorithm_output = rl_algorithm.compute_loss(
+            class_probabilities_in=model_outputs["class_probabilities"],
             actions_in=model_outputs["actions"],
             action_log_probs_in=model_outputs["action_log_probs"],
             state_values_in=model_outputs["state_values"],
             entropies_in=model_outputs["entropies"],
-            question_indices_in=batch["question_indices"],
+            indices_in=batch["indices"],
         )
 
         total_loss = rl_algorithm_output["loss"]
-        mean_sf_reward = rl_algorithm_output["mean_sf_reward"]
+        mean_classification_accuracy = rl_algorithm_output[
+            "mean_classification_accuracy"
+        ]
+        avg_read_fraction = rl_algorithm_output["avg_read_fraction"]
 
         if torch.isnan(total_loss).item():
             logger.write_log(
@@ -318,8 +273,8 @@ for epoch in range(start_epoch, config.epochs):
 
         if (batch_idx + 1) % config.gradient_accumulation_steps == 0:
             optimizer.step()
-            if config.use_lr_sched:
-                scheduler.step()
+            # if config.use_lr_sched:
+            #     scheduler.step()
             optimizer.zero_grad()
             iterations += 1
 
@@ -329,15 +284,15 @@ for epoch in range(start_epoch, config.epochs):
 
             logger.write_log("- - - - - - - - - - - - - - - - - - - -")
             logger.write_log(
-                "Time:{:.1f}, Epoch:{}/{}, Iteration:{}, Avg_train_loss:{:.4f}, batch_loss:{:.4f}, {}: {}".format(
+                "Time:{:.1f}, Epoch:{}/{}, Iteration:{}, Avg_train_loss:{:.4f}, batch_loss:{:.4f}, Acc: {:.2f}, Avg read fraction: {:.4f}".format(
                     time.time() - start,
                     epoch + 1,
                     config.epochs,
                     iterations,
                     avg_loss_since_last_time,
                     total_loss.item(),
-                    config.sf_reward,
-                    mean_sf_reward,
+                    mean_classification_accuracy,
+                    avg_read_fraction,
                 )
             )
 
@@ -358,8 +313,8 @@ for epoch in range(start_epoch, config.epochs):
                 "optimizer_state_dict": optimizer.state_dict(),
                 "best_dev_metrics": best_dev_metrics,
             }
-            if config.use_lr_sched:
-                state["scheduler_state_dict"] = scheduler.state_dict()
+            # if config.use_lr_sched:
+            #     state["scheduler_state_dict"] = scheduler.state_dict()
             if config.fp16:
                 state["amp_state_dict"] = amp.state_dict()
             torch.save(state, snapshot_path)
@@ -374,16 +329,14 @@ for epoch in range(start_epoch, config.epochs):
 
     evaluator.set_model(model)
 
-    dev_results = evaluator.run_model()
-
-    dev_metrics = dev_results["metrics"]
+    dev_metrics = evaluator.run_model()
 
     logger.write_log("==================================")
     logger.write_log("Dev set:")
     logger.write_log("Metrics: {}".format(dev_metrics))
     logger.write_log("==================================")
 
-    dev_accuracy = dev_metrics["f1"]
+    dev_accuracy = dev_metrics["classification_accuracy"]
 
     # update best validation set accuracy
     if dev_accuracy > best_dev_accuracy:
@@ -414,8 +367,8 @@ for epoch in range(start_epoch, config.epochs):
             "optimizer_state_dict": optimizer.state_dict(),
             "best_dev_metrics": best_dev_metrics,
         }
-        if config.use_lr_sched:
-            state["scheduler_state_dict"] = scheduler.state_dict()
+        # if config.use_lr_sched:
+        #     state["scheduler_state_dict"] = scheduler.state_dict()
         if config.fp16:
             state["amp_state_dict"] = amp.state_dict()
         logger.write_log("Saving model")
@@ -433,7 +386,7 @@ for epoch in range(start_epoch, config.epochs):
                 config.early_stopping_patience
             )
         )
-        logger.write_log("Best dev set accuracy = {}".format(best_dev_metrics))
+        logger.write_log("Best dev set metrics = {}".format(best_dev_metrics))
         break
 
     if config.eval_only:
