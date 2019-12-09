@@ -3,6 +3,8 @@ from torch.utils.data import Dataset
 import numpy as np
 from utils.file_utils import unpickler
 
+import pdb
+
 
 class IMDBDataset(Dataset):
     def __init__(self, config, is_training):
@@ -36,15 +38,14 @@ class IMDBDataset(Dataset):
             out_list.append(gt)
         return out_list
 
-    def __get__(self, index):
-
+    def __getitem__(self, index):
         out_dict = {
             "features": torch.tensor(self.dataset[index]["text"]),
             "word_mask": torch.tensor(
                 self.dataset[index]["word_mask"], dtype=torch.float
             ),
-            "label": torch.tensor(self.data[index]["label"]),
-            "index": torch.tensor(index),
+            "label": torch.tensor(self.dataset[index]["label"]),
+            "indices": torch.tensor(index),
         }
 
         return out_dict

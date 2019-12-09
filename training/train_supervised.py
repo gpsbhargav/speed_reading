@@ -13,7 +13,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
-from transformers import AdamW, WarmupLinearSchedule
+from transformers import AdamW
 
 from models.models import Model1
 from dataset_classes.imdb_dataset import IMDBDataset
@@ -64,10 +64,6 @@ parser.add_argument("--max_seq_len", type=int, default=250)
 config = parser.parse_args()
 
 config.n_gpu = torch.cuda.device_count()
-
-
-if not config.fe_cpu:
-    assert config.data_loader_num_workers == 0
 
 
 if config.fp16:
@@ -137,11 +133,11 @@ optimizer_grouped_parameters = [
 
 optimizer = AdamW(optimizer_grouped_parameters, lr=config.lr, eps=1e-8)
 
-scheduler = WarmupLinearSchedule(
-    optimizer,
-    warmup_steps=(config.warmup_proportion * num_train_steps),
-    t_total=num_train_steps,
-)
+# scheduler = WarmupLinearSchedule(
+#     optimizer,
+#     warmup_steps=(config.warmup_proportion * num_train_steps),
+#     t_total=num_train_steps,
+# )
 
 cross_entropy_loss = nn.CrossEntropyLoss()
 
@@ -178,7 +174,7 @@ if config.resume_training:
             start_epoch = checkpoint["epoch"]
             best_dev_accuracy = checkpoint["best_acc"]
             iterations = checkpoint["iteration"]
-            scheduler.load_state_dict(checkpoint["scheduler_state_dict"])
+            # scheduler.load_state_dict(checkpoint["scheduler_state_dict"])
             optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
 
         if config.fp16:
@@ -223,7 +219,11 @@ for epoch in range(start_epoch, config.epochs):
         }
         model_outputs = model(batch)
 
-        total_loss = bce_sf(model_outputs["class_probabilities"], batch["label"])
+        all_class_probabilities = model_outputs["class_probabilities"]
+
+        total_loss = cross_entropy_loss(
+            model_outputs["class_probabilities"], batch["label"]
+        )
 
         if torch.isnan(total_loss).item():
             logger.write_log(
@@ -252,7 +252,7 @@ for epoch in range(start_epoch, config.epochs):
 
         if (batch_idx + 1) % config.gradient_accumulation_steps == 0:
             optimizer.step()
-            scheduler.step()
+            # scheduler.step()
             optimizer.zero_grad()
             iterations += 1
 
@@ -262,7 +262,7 @@ for epoch in range(start_epoch, config.epochs):
 
             indices = batch["indices"].detach().cpu()
             predicted_classes = torch.argmax(all_class_probabilities, dim=-1)
-            gt_classes = self.dataset.get_gt(indices)
+            gt_classes = dataset.get_gt(indices)
             classification_accuracy = compute_accuracy(
                 pred=predicted_classes, gt=gt_classes
             )
@@ -295,7 +295,7 @@ for epoch in range(start_epoch, config.epochs):
                 "model_state_dict": model_state_dict,
                 "best_acc": best_dev_accuracy,
                 "optimizer_state_dict": optimizer.state_dict(),
-                "scheduler_state_dict": scheduler.state_dict(),
+                # "scheduler_state_dict": scheduler.state_dict(),
             }
             if config.fp16:
                 state["amp_state_dict"] = amp.state_dict()
@@ -345,7 +345,7 @@ for epoch in range(start_epoch, config.epochs):
             "model_state_dict": model_state_dict,
             "best_acc": best_dev_accuracy,
             "optimizer_state_dict": optimizer.state_dict(),
-            "scheduler_state_dict": scheduler.state_dict(),
+            # "scheduler_state_dict": scheduler.state_dict(),
         }
         if config.fp16:
             state["amp_state_dict"] = amp.state_dict()

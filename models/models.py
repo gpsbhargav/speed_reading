@@ -82,9 +82,9 @@ class Model1(nn.Module):
         ).contiguous()
 
         assert old_h.shape[0] == batch_size
-        assert old_h.shape[1] == self.config.model_hidden_size
+        assert old_h.shape[1] == self.config.lstm_hidden_size
         assert old_c.shape[0] == batch_size
-        assert old_c.shape[1] == self.config.model_hidden_size
+        assert old_c.shape[1] == self.config.lstm_hidden_size
 
         # transpose to seq_len x batch x hidden_dim
         seq_len = data_in["features"].shape[1]
@@ -123,9 +123,9 @@ class Model1(nn.Module):
         ).contiguous()
 
         assert old_h.shape[0] == batch_size
-        assert old_h.shape[1] == self.config.model_hidden_size
+        assert old_h.shape[1] == self.config.lstm_hidden_size
         assert old_c.shape[0] == batch_size
-        assert old_c.shape[1] == self.config.model_hidden_size
+        assert old_c.shape[1] == self.config.lstm_hidden_size
 
         old_action = torch.zeros((batch_size, 1), device=old_h.device)
 

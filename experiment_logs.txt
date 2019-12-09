@@ -1,0 +1,51 @@
+salloc --ntasks=1 --time=01:59:59 --gres=gpu:1 --partition=q1m_2h-1G
+
+salloc --ntasks=1 --time=11:59:59 --gres=gpu:2 --partition=q2h_12h-2G
+
+salloc --ntasks=1 --time=47:59:59 --gres=gpu:1 --partition=q2h_48h-2G
+
+salloc --ntasks=1 --time=47:59:59 --gres=gpu:1 --partition=cl1_all_4G
+
+salloc --ntasks=1 --time=47:59:59 --gres=gpu:1 --partition=cl1_48h-1G
+
+salloc --ntasks=1 --time=47:59:59 --gres=gpu:1 --partition=cl2_48h-1G
+
+salloc --ntasks=1 --time=47:59:59 --gres=gpu:4 --partition=cl2_all_8G
+
+salloc --ntasks=1 --time=48:59:59 --partition=cl1_all_64C
+
+docker run --runtime=nvidia -it ${USE_TTY} --ipc=host --name $SLURM_JOB_ID --rm -v /scratch/bhargavs:/workspace ptt:latest
+
+install apex in container
+
+export CUDA_VISIBLE_DEVICES=0,1,2,3
+or 
+export CUDA_VISIBLE_DEVICES=4,5,6,7
+
+=================================================================
+Supervised
+=================================================================
+
+python train_supervised.py --save_dir /home/bhargav/projects/speed_reading_results/trial/ --train_batch_size 100 --dev_batch_size 100 --lr 1e-3 --epochs 50 --max_grad_norm 1.0 --training_data ../preprocessed_data/preprocessed_train.pkl --dev_data ../preprocessed_data/preprocessed_test.pkl --embedding_matrix ../preprocessed_data/embedding_matrix.npy --log_every 50 --save_every 500 --early_stopping_patience 10 --data_loader_num_workers 8 --model_to_use 1
+
+Best dev metrics: 0.88392
+
+=================================================================
+RL 
+=================================================================
+
+=================================================================
+=================================================================
+
+------------------------------------------------
+------------------------------------------------
+------------------------------------------------
+------------------------------------------------
+------------------------------------------------
+------------------------------------------------
+------------------------------------------------
+------------------------------------------------
+------------------------------------------------
+------------------------------------------------
+------------------------------------------------
+------------------------------------------------

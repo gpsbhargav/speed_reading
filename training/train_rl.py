@@ -5,7 +5,7 @@ import os
 import glob
 import sys
 
-sys.path.append("../../")
+sys.path.append("../")
 
 import numpy as np
 
@@ -13,25 +13,15 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
-from transformers import AdamW, WarmupLinearSchedule
+from transformers import AdamW
 
-from sf_selection.models.sentence_selectors import (
-    SentenceSelector2,
-    SentenceSelector3,
-    SentenceSelector4,
-)
-from sf_selection.dataset_classes.transformer_features_dataset import (
-    TransformerFeaturesDataset,
-)
-from sf_selection.utils.file_utils import create_dir, Logger
+from models.models import Model1
+from dataset_classes.imdb_dataset import IMDBDataset
+from utils.file_utils import create_dir, Logger
+from evaluation.evaluate_rl import Evaluator
+from utils.metrics import compute_accuracy
 
-from sf_selection.evaluation.evaluate_rl import Evaluator
-
-# from sf_selection.evaluation.evaluate_supervised import Evaluator
-
-from sf_selection.utils.formatters import SFFormatter
-from sf_selection.utils.metrics import SFAccuracy
-from sf_selection.training.rl_classes import ActorCritic1, Reinforce1, Reinforce2
+import pdb
 
 import pdb
 
