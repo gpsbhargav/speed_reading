@@ -13,7 +13,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
-# from transformers import AdamW
+from transformers import AdamW
 from torch.optim import RMSprop
 
 
@@ -44,6 +44,10 @@ parser.add_argument("--lstm_hidden_size", type=int, default=128)
 parser.add_argument("--state_vector_size", type=int, default=25)
 parser.add_argument("--dropout", type=float, default=0.1)
 parser.add_argument("--train_word_embeddings", action="store_true")
+
+parser.add_argument(
+    "--optimizer", type=str, choices=["adamw", "rmsprop"], required=True
+)
 
 parser.add_argument("--resume_training", action="store_true")
 parser.add_argument("--training_data", type=str, required=True)
@@ -134,7 +138,29 @@ num_train_steps = int(
 #     },
 # ]
 
-optimizer = RMSprop(model.parameters(), lr=config.lr)
+if config.optimizer == "rmsprop":
+    optimizer = RMSprop(model.parameters(), lr=config.lr)
+elif config.optimizer == "adamw":
+    no_decay = ["bias", "LayerNorm.weight"]
+    optimizer_grouped_parameters = [
+        {
+            "params": [
+                p
+                for n, p in model.named_parameters()
+                if not any(nd in n for nd in no_decay)
+            ],
+            "weight_decay": 0.01,
+        },
+        {
+            "params": [
+                p
+                for n, p in model.named_parameters()
+                if any(nd in n for nd in no_decay)
+            ],
+            "weight_decay": 0.0,
+        },
+    ]
+    optimizer = AdamW(optimizer_grouped_parameters, lr=config.lr)
 
 # scheduler = WarmupLinearSchedule(
 #     optimizer,

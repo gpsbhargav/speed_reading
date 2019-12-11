@@ -27,38 +27,54 @@ Supervised
 =================================================================
 # AdamW, trainable LSTM initial states
 
-python train_supervised.py --save_dir /home/bhargav/projects/speed_reading_results/trial/ --train_batch_size 100 --dev_batch_size 100 --lr 1e-3 --epochs 50 --max_grad_norm 0.1 --training_data ../preprocessed_data/preprocessed_train.pkl --dev_data ../preprocessed_data/preprocessed_test.pkl --embedding_matrix ../preprocessed_data/embedding_matrix.npy --log_every 50 --save_every 200 --early_stopping_patience 10 --data_loader_num_workers 8 --model_to_use 1
+python train_supervised.py --save_dir /home/bhargav/projects/speed_reading_results/trial/ --train_batch_size 100 --dev_batch_size 100 --lr 1e-3 --epochs 50 --max_grad_norm 0.1 --training_data ../preprocessed_data/preprocessed_train.pkl --dev_data ../preprocessed_data/preprocessed_test.pkl --embedding_matrix ../preprocessed_data/embedding_matrix.npy --log_every 50 --save_every 200 --early_stopping_patience 10 --data_loader_num_workers 8 --model_to_use 1 --optimizer adamw
 
 Best dev metrics: 0.88392
 
 
 # RMSProp, LSTM initial states set to 0
 
-python train_supervised.py --save_dir /home/bhargav/projects/speed_reading_results/sup2/ --train_batch_size 100 --dev_batch_size 100 --lr 5e-4 --epochs 50 --max_grad_norm 0.1 --training_data ../preprocessed_data/preprocessed_train.pkl --dev_data ../preprocessed_data/preprocessed_test.pkl --embedding_matrix ../preprocessed_data/embedding_matrix.npy --log_every 50 --save_every 200 --early_stopping_patience 10 --data_loader_num_workers 8 --model_to_use 1
+python train_supervised.py --save_dir /home/bhargav/projects/speed_reading_results/sup2/ --train_batch_size 100 --dev_batch_size 100 --lr 5e-4 --epochs 50 --max_grad_norm 0.1 --training_data ../preprocessed_data/preprocessed_train.pkl --dev_data ../preprocessed_data/preprocessed_test.pkl --embedding_matrix ../preprocessed_data/embedding_matrix.npy --log_every 50 --save_every 200 --early_stopping_patience 10 --data_loader_num_workers 8 --model_to_use 1 --optimizer rmsprop
 
 
 =================================================================
 RL 
 =================================================================
-python train_rl.py --save_dir /home/bhargav/projects/speed_reading_results/rl_trial/ --training_data ../preprocessed_data/preprocessed_train.pkl --dev_data ../preprocessed_data/preprocessed_train.pkl --embedding_matrix ../preprocessed_data/embedding_matrix.npy --log_every 1 --save_every 1 --early_stopping_patience 10 --data_loader_num_workers 8 --model_to_use 1 --warm_start_checkpoint /home/bhargav/projects/speed_reading_results/trial/best.pt --rl_algo ac --epochs 500 --early_stopping_patience 100000 --small_data_size 100
 
+python train_rl.py --save_dir /home/bhargav/projects/speed_reading_results/rl1/ --training_data ../preprocessed_data/preprocessed_train.pkl --dev_data ../preprocessed_data/preprocessed_test.pkl --embedding_matrix ../preprocessed_data/embedding_matrix.npy --log_every 5 --save_every 200 --early_stopping_patience 100 --data_loader_num_workers 8 --model_to_use 1 --warm_start_checkpoint /home/bhargav/projects/speed_reading_results/trial/best.pt --rl_algo ac --epochs 100 --optimizer adamw
 
+After 85 epochs. Read fraction is NOT converging:
+Best dev metrics: {'classification_accuracy': 0.86264, 'avg_read_fraction': 0.7615777850151062}.
 
-
-------------------------------------------------
 
 # on t1
-python train_rl.py --save_dir /home/bhargav/projects/speed_reading_results/rl1/ --training_data ../preprocessed_data/preprocessed_train.pkl --dev_data ../preprocessed_data/preprocessed_test.pkl --embedding_matrix ../preprocessed_data/embedding_matrix.npy --log_every 5 --save_every 200 --early_stopping_patience 100 --data_loader_num_workers 8 --model_to_use 1 --warm_start_checkpoint /home/bhargav/projects/speed_reading_results/trial/best.pt --rl_algo ac --epochs 100
+python train_rl.py --save_dir /home/bhargav/projects/speed_reading_results/rl1/ --training_data ../preprocessed_data/preprocessed_train.pkl --dev_data ../preprocessed_data/preprocessed_test.pkl --embedding_matrix ../preprocessed_data/embedding_matrix.npy --log_every 5 --save_every 200 --early_stopping_patience 100 --data_loader_num_workers 8 --model_to_use 1 --warm_start_checkpoint /home/bhargav/projects/speed_reading_results/trial/best.pt --rl_algo ac --epochs 100 --loss_weight_actor 1.0 --loss_weight_critic 1.0 --loss_weight_classification 1.0 --loss_weight_entropy 0.0 --sent_skip_reward_multiplier 0.5 --step_reward_multiplier 1.0 --optimizer adamw
 
 
 
-# on t2
-python train_rl.py --save_dir /home/bhargav/projects/speed_reading_results/rl2/ --training_data ../preprocessed_data/preprocessed_train.pkl --dev_data ../preprocessed_data/preprocessed_test.pkl --embedding_matrix ../preprocessed_data/embedding_matrix.npy --log_every 5 --save_every 200 --early_stopping_patience 100 --data_loader_num_workers 8 --model_to_use 1 --warm_start_checkpoint /home/bhargav/projects/speed_reading_results/trial/best.pt --rl_algo ac --epochs 100 --loss_weight_actor 5.0
+python train_rl.py --save_dir /home/bhargav/projects/speed_reading_results/rl2/ --training_data ../preprocessed_data/preprocessed_train.pkl --dev_data ../preprocessed_data/preprocessed_test.pkl --embedding_matrix ../preprocessed_data/embedding_matrix.npy --log_every 5 --save_every 200 --early_stopping_patience 100 --data_loader_num_workers 8 --model_to_use 1 --warm_start_checkpoint /home/bhargav/projects/speed_reading_results/trial/best.pt --rl_algo ac --epochs 100 --loss_weight_actor 5.0 --optimizer adamw
+
+read fraction increased to ~70-80%. Accuracy was around 85%
 
 
 # RMSProp, LSTM initial states are 0
 
-python train_rl.py --save_dir /home/bhargav/projects/speed_reading_results/rl3/ --training_data ../preprocessed_data/preprocessed_train.pkl --dev_data ../preprocessed_data/preprocessed_test.pkl --embedding_matrix ../preprocessed_data/embedding_matrix.npy --log_every 1 --save_every 200 --early_stopping_patience 100 --data_loader_num_workers 8 --model_to_use 1 --warm_start_checkpoint /home/bhargav/projects/speed_reading_results/sup2/best.pt --rl_algo ac --epochs 100 --small_data_size 50 --loss_weight_actor 1.0 --loss_weight_critic 1.0 --loss_weight_classification 1.0 --loss_weight_entropy 0.0 --sent_skip_reward_multiplier 0.5 --step_reward_multiplier 1.0
+# on t3
+python train_rl.py --save_dir /home/bhargav/projects/speed_reading_results/rl3/ --training_data ../preprocessed_data/preprocessed_train.pkl --dev_data ../preprocessed_data/preprocessed_test.pkl --embedding_matrix ../preprocessed_data/embedding_matrix.npy --log_every 5 --save_every 200 --early_stopping_patience 1000 --data_loader_num_workers 8 --model_to_use 1 --warm_start_checkpoint /home/bhargav/projects/speed_reading_results/sup2/best.pt --rl_algo ac --epochs 200 --loss_weight_actor 1.0 --loss_weight_critic 1.0 --loss_weight_classification 0.3 --loss_weight_entropy 0.01 --sent_skip_reward_multiplier 0.5 --step_reward_multiplier 0.5 --optimizer rmsprop
+
+
+# on t4
+python train_rl.py --save_dir /home/bhargav/projects/speed_reading_results/rl4/ --training_data ../preprocessed_data/preprocessed_train.pkl --dev_data ../preprocessed_data/preprocessed_test.pkl --embedding_matrix ../preprocessed_data/embedding_matrix.npy --log_every 5 --save_every 200 --early_stopping_patience 1000 --data_loader_num_workers 8 --model_to_use 1 --warm_start_checkpoint /home/bhargav/projects/speed_reading_results/sup2/best.pt --rl_algo ac --epochs 200 --loss_weight_actor 1.0 --loss_weight_critic 1.0 --loss_weight_classification 0.5 --loss_weight_entropy 0.01 --sent_skip_reward_multiplier 0.5 --step_reward_multiplier 0.5 --optimizer rmsprop
+
+
+
+
+# on t5
+python train_rl.py --save_dir /home/bhargav/projects/speed_reading_results/rl5/ --training_data ../preprocessed_data/preprocessed_train.pkl --dev_data ../preprocessed_data/preprocessed_test.pkl --embedding_matrix ../preprocessed_data/embedding_matrix.npy --log_every 5 --save_every 200 --early_stopping_patience 1000 --data_loader_num_workers 8 --model_to_use 1 --warm_start_checkpoint /home/bhargav/projects/speed_reading_results/sup2/best.pt --rl_algo ac --epochs 200 --loss_weight_actor 1.0 --loss_weight_critic 1.0 --loss_weight_classification 0.3 --loss_weight_entropy 0.01 --sent_skip_reward_multiplier 0.5 --step_reward_multiplier 0.5 --optimizer rmsprop --train_word_embeddings
+
+
+
+
 
 
 
