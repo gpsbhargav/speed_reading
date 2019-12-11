@@ -47,7 +47,7 @@ class ActorCritic1:
             accuracies, device=class_probabilities.device
         )
         for i in range(len(accuracies)):
-            if accuracies[i] > 0:
+            if accuracies[i] > 0.5:
                 classification_rewards[i] = 1.0
             else:
                 classification_rewards[i] = class_probabilities[i][gt_classes[i]]
@@ -216,6 +216,7 @@ class ActorCritic1:
 
         self.write_log(
             {
+                "mean_classification_reward": classification_rewards.mean().item(),
                 "mean_classification_accuracy": mean_classification_accuracy,
                 "avg_read_fraction": avg_read_fraction,
                 "actor_loss": actor_loss.item(),

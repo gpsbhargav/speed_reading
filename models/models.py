@@ -54,13 +54,22 @@ class Model1(nn.Module):
             bias=True,
         )
 
+        # self.h0 = nn.Parameter(
+        #     torch.randn([1, config.lstm_hidden_size], requires_grad=True),
+        #     requires_grad=True,
+        # )
+        # self.c0 = nn.Parameter(
+        #     torch.randn([1, config.lstm_hidden_size], requires_grad=True),
+        #     requires_grad=True,
+        # )
+
         self.h0 = nn.Parameter(
-            torch.randn([1, config.lstm_hidden_size], requires_grad=True),
-            requires_grad=True,
+            torch.zeros([1, config.lstm_hidden_size], requires_grad=False),
+            requires_grad=False,
         )
         self.c0 = nn.Parameter(
-            torch.randn([1, config.lstm_hidden_size], requires_grad=True),
-            requires_grad=True,
+            torch.zeros([1, config.lstm_hidden_size], requires_grad=False),
+            requires_grad=False,
         )
 
     def forward_supervised(self, data_in):
@@ -111,7 +120,9 @@ class Model1(nn.Module):
         }
         """
         embeddings = self.word_embedding(data_in["features"])
-        embeddings = self.dropout(embeddings)
+
+        if not self.config.train_only_rl_agents:
+            embeddings = self.dropout(embeddings)
 
         # expand h0 and c0 to batch_size x hidden_dim
         batch_size = data_in["features"].shape[0]
@@ -145,13 +156,28 @@ class Model1(nn.Module):
         all_entropies = []
         for time_step in range(seq_len):
 
-            state_vector = self.fc_relu_state(
-                torch.cat([embeddings[time_step], old_h, old_action], dim=1)
-            )
+            if self.config.train_only_rl_agents:
+                state_vector = self.fc_relu_state(
+                    torch.cat(
+                        [embeddings[time_step], old_h.detach(), old_action], dim=1
+                    )
+                )
+            else:
+                state_vector = self.fc_relu_state(
+                    torch.cat([embeddings[time_step], old_h, old_action], dim=1)
+                )
 
             val = self.value_function(state_vector).squeeze(-1)
 
-            new_h, new_c = self.state_lstm_cell(embeddings[time_step], (old_h, old_c))
+            if self.config.train_only_rl_agents:
+                with torch.no_grad():
+                    new_h, new_c = self.state_lstm_cell(
+                        embeddings[time_step], (old_h, old_c)
+                    )
+            else:
+                new_h, new_c = self.state_lstm_cell(
+                    embeddings[time_step], (old_h, old_c)
+                )
 
             read_probs = self.fc_read_probs(state_vector)
 
@@ -168,7 +194,7 @@ class Model1(nn.Module):
             read_prob_dist = Bernoulli(probs=read_probs)
             entropy = read_prob_dist.entropy()
 
-            if self.config.greedy_action:
+            if self.config.greedy_action or not self.training:
                 action = (read_probs > 0.5).type(torch.float)
             else:
                 action = read_prob_dist.sample()
@@ -196,8 +222,12 @@ class Model1(nn.Module):
             all_actions.append(actions_masked.type(torch.int32).squeeze(-1))
             all_entropies.append(entropy)
 
-        new_h = self.dropout(new_h)
-        class_probabilities = self.fc_classifier(new_h)
+        if self.config.train_only_rl_agents:
+            with torch.no_grad():
+                class_probabilities = self.fc_classifier(new_h)
+        else:
+            new_h = self.dropout(new_h)
+            class_probabilities = self.fc_classifier(new_h)
 
         # all lists are seq_len x batch_size
         return {

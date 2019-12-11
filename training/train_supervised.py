@@ -13,7 +13,9 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
-from transformers import AdamW
+# from transformers import AdamW
+from torch.optim import RMSprop
+
 
 from models.models import Model1
 from dataset_classes.imdb_dataset import IMDBDataset
@@ -32,7 +34,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--save_dir", type=str, required=True)
 parser.add_argument("--train_batch_size", type=int, default=100)
 parser.add_argument("--dev_batch_size", type=int, default=100)
-parser.add_argument("--lr", type=float, default=1e-3)
+parser.add_argument("--lr", type=float, default=5e-4)
 parser.add_argument("--epochs", type=int, default=10)
 parser.add_argument("--gradient_accumulation_steps", type=int, default=1)
 parser.add_argument("--warmup_proportion", type=float, default=0.1)
@@ -113,25 +115,25 @@ num_train_steps = int(
     * config.epochs
 )
 
-no_decay = ["bias", "LayerNorm.weight"]
-optimizer_grouped_parameters = [
-    {
-        "params": [
-            p
-            for n, p in model.named_parameters()
-            if not any(nd in n for nd in no_decay)
-        ],
-        "weight_decay": 0.01,
-    },
-    {
-        "params": [
-            p for n, p in model.named_parameters() if any(nd in n for nd in no_decay)
-        ],
-        "weight_decay": 0.0,
-    },
-]
+# no_decay = ["bias", "LayerNorm.weight"]
+# optimizer_grouped_parameters = [
+#     {
+#         "params": [
+#             p
+#             for n, p in model.named_parameters()
+#             if not any(nd in n for nd in no_decay)
+#         ],
+#         "weight_decay": 0.01,
+#     },
+#     {
+#         "params": [
+#             p for n, p in model.named_parameters() if any(nd in n for nd in no_decay)
+#         ],
+#         "weight_decay": 0.0,
+#     },
+# ]
 
-optimizer = AdamW(optimizer_grouped_parameters, lr=config.lr, eps=1e-8)
+optimizer = RMSprop(model.parameters(), lr=config.lr)
 
 # scheduler = WarmupLinearSchedule(
 #     optimizer,

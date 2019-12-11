@@ -119,4 +119,6 @@ venv.bak/
 .DS_Store
 preprocessed_data
 data
+data_and_plots
+
 

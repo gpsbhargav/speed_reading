@@ -15,7 +15,12 @@ class IMDBDataset(Dataset):
             self.dataset = unpickler(config.dev_data)
 
         if self.config.small_data_size > 0:
-            self.dataset = self.dataset[: self.config.small_data_size]
+            mid = int(len(self.dataset) / 2)
+            self.dataset = self.dataset[
+                mid
+                - int(self.config.small_data_size / 2) : mid
+                + int(self.config.small_data_size / 2)
+            ]
 
     def __len__(self):
         return len(self.dataset)
