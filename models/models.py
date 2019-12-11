@@ -24,7 +24,11 @@ class Model1(nn.Module):
             embedding_matrix.shape[0], embedding_matrix.shape[1]
         )
         self.word_embedding.weight.data.copy_(torch.from_numpy(embedding_matrix))
-        self.word_embedding.weight.requires_grad = False
+
+        if self.config.train_word_embeddings:
+            self.word_embedding.weight.requires_grad = True
+        else:
+            self.word_embedding.weight.requires_grad = False
 
         # uses current input, previous hidden state and one hot version of previous action to form state vector for current timestep
         self.fc_relu_state = nn.Sequential(

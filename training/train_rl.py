@@ -45,6 +45,7 @@ parser.add_argument("--word_embedding_size", type=int, default=300)
 parser.add_argument("--lstm_hidden_size", type=int, default=128)
 parser.add_argument("--state_vector_size", type=int, default=25)
 parser.add_argument("--dropout", type=float, default=0.1)
+parser.add_argument("--train_word_embeddings", action="store_true")
 
 parser.add_argument("--resume_training", action="store_true")
 parser.add_argument("--training_data", type=str, required=True)
@@ -77,6 +78,7 @@ parser.add_argument("--loss_weight_classification", type=float, default=1.0)
 parser.add_argument("--greedy_action", action="store_true")
 
 parser.add_argument("--train_only_rl_agents", action="store_true")
+
 
 parser.add_argument("--rl_algo", type=str, choices=["ac"], required=True)
 
