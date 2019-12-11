@@ -47,7 +47,7 @@ After 85 epochs. Read fraction is NOT converging:
 Best dev metrics: {'classification_accuracy': 0.86264, 'avg_read_fraction': 0.7615777850151062}.
 
 
-# on t1
+# Run next ?
 python train_rl.py --save_dir /home/bhargav/projects/speed_reading_results/rl1/ --training_data ../preprocessed_data/preprocessed_train.pkl --dev_data ../preprocessed_data/preprocessed_test.pkl --embedding_matrix ../preprocessed_data/embedding_matrix.npy --log_every 5 --save_every 200 --early_stopping_patience 100 --data_loader_num_workers 8 --model_to_use 1 --warm_start_checkpoint /home/bhargav/projects/speed_reading_results/trial/best.pt --rl_algo ac --epochs 100 --loss_weight_actor 1.0 --loss_weight_critic 1.0 --loss_weight_classification 1.0 --loss_weight_entropy 0.0 --sent_skip_reward_multiplier 0.5 --step_reward_multiplier 1.0 --optimizer adamw
 
 
