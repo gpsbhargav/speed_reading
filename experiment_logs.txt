@@ -62,19 +62,30 @@ read fraction increased to ~70-80%. Accuracy was around 85%
 # on t3
 python train_rl.py --save_dir /home/bhargav/projects/speed_reading_results/rl3/ --training_data ../preprocessed_data/preprocessed_train.pkl --dev_data ../preprocessed_data/preprocessed_test.pkl --embedding_matrix ../preprocessed_data/embedding_matrix.npy --log_every 5 --save_every 200 --early_stopping_patience 1000 --data_loader_num_workers 8 --model_to_use 1 --warm_start_checkpoint /home/bhargav/projects/speed_reading_results/sup2/best.pt --rl_algo ac --epochs 200 --loss_weight_actor 1.0 --loss_weight_critic 1.0 --loss_weight_classification 0.3 --loss_weight_entropy 0.01 --sent_skip_reward_multiplier 0.5 --step_reward_multiplier 0.5 --optimizer rmsprop
 
+classification_accuracy: 82-83%
+Read fraction: 3-2%
+
 
 # on t4
 python train_rl.py --save_dir /home/bhargav/projects/speed_reading_results/rl4/ --training_data ../preprocessed_data/preprocessed_train.pkl --dev_data ../preprocessed_data/preprocessed_test.pkl --embedding_matrix ../preprocessed_data/embedding_matrix.npy --log_every 5 --save_every 200 --early_stopping_patience 1000 --data_loader_num_workers 8 --model_to_use 1 --warm_start_checkpoint /home/bhargav/projects/speed_reading_results/sup2/best.pt --rl_algo ac --epochs 200 --loss_weight_actor 1.0 --loss_weight_critic 1.0 --loss_weight_classification 0.5 --loss_weight_entropy 0.01 --sent_skip_reward_multiplier 0.5 --step_reward_multiplier 0.5 --optimizer rmsprop
 
-
+classification_accuracy: ~82%
+Read fraction: ~6%
 
 
 # on t5
 python train_rl.py --save_dir /home/bhargav/projects/speed_reading_results/rl5/ --training_data ../preprocessed_data/preprocessed_train.pkl --dev_data ../preprocessed_data/preprocessed_test.pkl --embedding_matrix ../preprocessed_data/embedding_matrix.npy --log_every 5 --save_every 200 --early_stopping_patience 1000 --data_loader_num_workers 8 --model_to_use 1 --warm_start_checkpoint /home/bhargav/projects/speed_reading_results/sup2/best.pt --rl_algo ac --epochs 200 --loss_weight_actor 1.0 --loss_weight_critic 1.0 --loss_weight_classification 0.3 --loss_weight_entropy 0.01 --sent_skip_reward_multiplier 0.5 --step_reward_multiplier 0.5 --optimizer rmsprop --train_word_embeddings
 
+classification_accuracy: 82-83%
+Read fraction: 6%
 
 
+# on t6
+python train_rl.py --save_dir /home/bhargav/projects/speed_reading_results/rl6/ --training_data ../preprocessed_data/preprocessed_train.pkl --dev_data ../preprocessed_data/preprocessed_test.pkl --embedding_matrix ../preprocessed_data/embedding_matrix.npy --log_every 5 --save_every 200 --early_stopping_patience 1000 --data_loader_num_workers 8 --model_to_use 1 --warm_start_checkpoint /home/bhargav/projects/speed_reading_results/sup2/best.pt --rl_algo ac --epochs 200 --loss_weight_actor 1.0 --loss_weight_critic 1.0 --loss_weight_classification 0.3 --loss_weight_entropy 0.01 --sent_skip_reward_multiplier 0.5 --step_reward_multiplier 0.3 --optimizer rmsprop --train_word_embeddings
 
+
+# on t7
+python train_rl.py --save_dir /home/bhargav/projects/speed_reading_results/rl7/ --training_data ../preprocessed_data/preprocessed_train.pkl --dev_data ../preprocessed_data/preprocessed_test.pkl --embedding_matrix ../preprocessed_data/embedding_matrix.npy --log_every 5 --save_every 200 --early_stopping_patience 1000 --data_loader_num_workers 8 --model_to_use 1 --warm_start_checkpoint /home/bhargav/projects/speed_reading_results/sup2/best.pt --rl_algo ac --epochs 200 --loss_weight_actor 1.0 --loss_weight_critic 1.0 --loss_weight_classification 0.3 --loss_weight_entropy 0.01 --sent_skip_reward_multiplier 0.5 --step_reward_multiplier 0.4 --optimizer rmsprop --train_word_embeddings
 
 
 
