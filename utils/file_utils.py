@@ -1,6 +1,7 @@
 import os
 import glob
 import pickle
+import json
 
 
 def create_dir(path):
@@ -36,3 +37,19 @@ class Logger:
             log_file_handle.write("\n")
         if self.print_to_screen:
             print(log_str)
+
+
+class JSONLLogger:
+    def __init__(self, log_file):
+        self.log_file = log_file
+        self.create_log_file()
+
+    def create_log_file(self):
+        with open(self.log_file, "w") as out_file:
+            pass
+
+    def write_log(self, dict_in):
+        with open(self.log_file, "a") as out_file:
+            json_str = json.dumps(dict_in)
+            out_file.write(json_str)
+            out_file.write("\n")

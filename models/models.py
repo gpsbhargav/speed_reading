@@ -76,8 +76,6 @@ class Model1(nn.Module):
             requires_grad=False,
         )
 
-        assert self.config.entropy_loss_type in [1, 2]
-
     def compute_cross_entropy(self, pred_probs):
         assert self.config.entropy_loss_type in [2]
 
@@ -145,6 +143,7 @@ class Model1(nn.Module):
             "word_mask": batch x [0,0,0,0,1,1,1,1], # 0 means token is padding.
         }
         """
+        assert self.config.entropy_loss_type in [1, 2]
         embeddings = self.word_embedding(data_in["features"])
 
         if not self.config.train_only_rl_agents:
