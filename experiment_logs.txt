@@ -118,7 +118,13 @@ python train_rl.py --save_dir /home/bhargav/projects/speed_reading_results/rl10/
 Self training, no RL 
 =================================================================
 
-python train_self_training.py --save_dir /home/bhargav/projects/speed_reading_results/st_trial/ --training_data ../preprocessed_data/semi_supervised/preprocessed_train.pkl --dev_data ../preprocessed_data/semi_supervised/preprocessed_val.pkl --embedding_matrix ../preprocessed_data/semi_supervised/embedding_matrix.npy --log_every 5 --model_to_use 1 --optimizer rmsprop --patience_for_adding_data 4 --patience_before_adding_data 6 --pseudo_label_threshold 0.85
+python train_self_training.py --save_dir /home/bhargav/projects/speed_reading_results/st_trial/ --training_data ../preprocessed_data/semi_supervised/preprocessed_train.pkl --dev_data ../preprocessed_data/semi_supervised/preprocessed_val.pkl --embedding_matrix ../preprocessed_data/semi_supervised/embedding_matrix.npy --log_every 5 --model_to_use 1 --optimizer rmsprop --patience_for_adding_data 4 --patience_before_adding_data 6 --pseudo_label_threshold 0.9
+
+
+
+
+python train_self_training.py --save_dir /home/bhargav/projects/speed_reading_results/st1/ --training_data ../preprocessed_data/semi_supervised/preprocessed_train.pkl --dev_data ../preprocessed_data/semi_supervised/preprocessed_val.pkl --embedding_matrix ../preprocessed_data/semi_supervised/embedding_matrix.npy --log_every 5 --model_to_use 1 --optimizer rmsprop --patience_for_adding_data 4 --patience_before_adding_data 6 --pseudo_label_threshold 0.9
+
 
 ------------------------------------------------
 ------------------------------------------------

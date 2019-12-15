@@ -143,8 +143,11 @@ create_dir(config.save_dir)
 
 logger = Logger(config.save_dir + "training_log_all.log")
 
-training_metrics_logger = JSONLLogger(config.save_dir + "training_metrics_log.jsonl")
-dev_metrics_logger = JSONLLogger(config.save_dir + "dev_metrics_log.jsonl")
+if not config.eval_only:
+    training_metrics_logger = JSONLLogger(
+        config.save_dir + "training_metrics_log.jsonl"
+    )
+    dev_metrics_logger = JSONLLogger(config.save_dir + "dev_metrics_log.jsonl")
 
 logger.write_log("Reading data")
 
@@ -212,7 +215,6 @@ if config.resume_training:
 
         model.load_state_dict(checkpoint["model_state_dict"])
 
-        start_epoch = checkpoint["epoch"]
         best_dev_accuracy = checkpoint["best_acc"]
         iterations = checkpoint["iteration"]
         # scheduler.load_state_dict(checkpoint["scheduler_state_dict"])
@@ -222,8 +224,8 @@ if config.resume_training:
             amp.load_state_dict(checkpoint["amp_state_dict"])
 
         logger.write_log(
-            "=> loaded checkpoint. Resuming epoch {}, iteration {}".format(
-                checkpoint["epoch"] + 1, checkpoint["iteration"]
+            "=> loaded checkpoint. Resuming iteration {}".format(
+                checkpoint["iteration"]
             )
         )
 
