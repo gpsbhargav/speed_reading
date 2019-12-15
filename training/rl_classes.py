@@ -217,8 +217,10 @@ class ActorCritic1:
         self.write_log(
             {
                 "mean_classification_reward": classification_rewards.mean().item(),
+                "sum_cumulative_rewards": cumulative_rewards.sum(dim=-1).mean().item(),
                 "mean_classification_accuracy": mean_classification_accuracy,
                 "avg_read_fraction": avg_read_fraction,
+                "total_loss": total_loss.item(),
                 "actor_loss": actor_loss.item(),
                 "critic_loss": critic_loss.item(),
                 "entropy_loss": entropy_loss.item(),

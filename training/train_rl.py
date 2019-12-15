@@ -74,6 +74,8 @@ parser.add_argument("--warm_start_checkpoint", type=str, default="")
 parser.add_argument("--sent_skip_reward_multiplier", type=float, default=0.5)
 parser.add_argument("--step_reward_multiplier", type=float, default=0.1)
 
+parser.add_argument("--entropy_loss_type", type=int, choices=[1, 2], default=1)
+
 parser.add_argument("--loss_weight_entropy", type=float, default=0.1)
 parser.add_argument("--loss_weight_actor", type=float, default=10.0)
 parser.add_argument("--loss_weight_critic", type=float, default=1.0)

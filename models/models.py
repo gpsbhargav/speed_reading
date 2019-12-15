@@ -76,6 +76,28 @@ class Model1(nn.Module):
             requires_grad=False,
         )
 
+        assert self.config.entropy_loss_type in [1, 2]
+
+    def compute_cross_entropy(self, pred_probs):
+        assert self.config.entropy_loss_type in [2]
+
+        if self.config.entropy_loss_type == 2:
+            target_probs = torch.tensor([0.5, 0.5], device=pred_probs.device)
+
+        # log(q_i)
+        log_pred_probs = torch.log(pred_probs)
+
+        # p_i * log(q_i)
+        intermediate_1 = target_probs * log_pred_probs
+
+        # -sum(p_i * log(q_i))
+        cross_entropy = -intermediate_1.sum(dim=-1)
+
+        assert len(cross_entropy.shape) == 1
+        assert cross_entropy.shape[0] == pred_probs.shape[0]
+
+        return cross_entropy
+
     def forward_supervised(self, data_in):
         """ 
         data_in = {
@@ -183,20 +205,24 @@ class Model1(nn.Module):
                     embeddings[time_step], (old_h, old_c)
                 )
 
-            read_probs = self.fc_read_probs(state_vector)
+            action_probs = self.fc_read_probs(state_vector)
 
-            assert read_probs.shape[0] == batch_size
-            assert read_probs.shape[1] == 2
+            assert action_probs.shape[0] == batch_size
+            assert action_probs.shape[1] == 2
 
             # let the first dimension be the probability of selecting the sentence
-            read_probs = read_probs[:, 1]
+            read_probs = action_probs[:, 1]
 
             # dim: batch_size
             assert len(read_probs.shape) == 1
             assert read_probs.shape[0] == data_in["features"].shape[0]
 
             read_prob_dist = Bernoulli(probs=read_probs)
-            entropy = read_prob_dist.entropy()
+
+            if self.config.entropy_loss_type == 1:
+                entropy = read_prob_dist.entropy()
+            elif self.config.entropy_loss_type == 2:
+                entropy = self.compute_cross_entropy(action_probs)
 
             if self.config.greedy_action or not self.training:
                 action = (read_probs > 0.5).type(torch.float)
