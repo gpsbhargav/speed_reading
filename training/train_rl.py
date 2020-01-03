@@ -16,23 +16,22 @@ from torch.utils.data import DataLoader
 from transformers import AdamW
 from torch.optim import RMSprop
 
-from models.models import Model1
+from models.models import Model1, Model2
 from dataset_classes.imdb_dataset import IMDBDataset
-from utils.file_utils import create_dir, Logger
+from utils.file_utils import create_dir, Logger, JSONLLogger
 from evaluation.evaluate_rl import Evaluator
 from training.rl_classes import ActorCritic1
+from training.training_metrics_computer import RLTrainingMetricComputer
 
 # from utils.metrics import compute_accuracy
 
 import pdb
 
-import pdb
-
 random.seed(42)
-
+np.random.seed(42)
+torch.manual_seed(42)
 
 parser = argparse.ArgumentParser()
-
 
 parser.add_argument("--save_dir", type=str, required=True)
 parser.add_argument("--train_batch_size", type=int, default=100)
@@ -66,7 +65,7 @@ parser.add_argument("--eval_only", action="store_true")
 parser.add_argument("--training_topup", action="store_true")
 
 parser.add_argument("--data_loader_num_workers", type=int, default=0)
-parser.add_argument("--model_to_use", type=int, choices=[1], default=1)
+parser.add_argument("--model_to_use", type=int, choices=[1, 2], default=1)
 
 parser.add_argument("--max_seq_len", type=int, default=250)
 
@@ -104,6 +103,10 @@ create_dir(config.save_dir)
 
 logger = Logger(config.save_dir + "training_log.log")
 
+if not config.eval_only:
+    epoch_logger = JSONLLogger(config.save_dir + "epoch_logs.jsonl")
+
+
 logger.write_log("Reading data")
 
 dataset = IMDBDataset(config, is_training=True)
@@ -123,9 +126,16 @@ dataloader = DataLoader(
     worker_init_fn=None,
 )
 
+
+training_set_metrics_computer = RLTrainingMetricComputer(config)
+
+
 logger.write_log("Building model")
 
-model = Model1(config)
+if config.model_to_use == 1:
+    model = Model1(config)
+elif config.model_to_use == 2:
+    model = Model2(config)
 
 num_train_steps = int(
     (len(dataset) / config.train_batch_size / config.gradient_accumulation_steps)
@@ -237,10 +247,10 @@ for epoch in range(start_epoch, config.epochs):
         if config.eval_only:
             break
 
-        if iterations > num_train_steps:
-            logger.write_log("Reached maximum number of iterations")
-            stop_training_flag = True
-            break
+        # if iterations > num_train_steps:
+        #     logger.write_log("Reached maximum number of iterations")
+        #     stop_training_flag = True
+        #     break
 
         model.train()
 
@@ -348,6 +358,14 @@ for epoch in range(start_epoch, config.epochs):
     evaluator.set_model(model)
 
     dev_metrics = evaluator.run_model()
+
+    training_set_metrics = training_set_metrics_computer.run_model(model, dataset)
+
+    log_dict = training_set_metrics
+    log_dict["dev_classification_accuracy"] = dev_metrics["classification_accuracy"]
+    log_dict["dev_avg_read_fraction"] = dev_metrics["avg_read_fraction"]
+
+    epoch_logger.write_log(log_dict)
 
     logger.write_log("==================================")
     logger.write_log("Dev set:")

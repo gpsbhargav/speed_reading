@@ -25,10 +25,13 @@ from utils.file_utils import create_dir, Logger, JSONLLogger
 from evaluation.evaluate_supervised import Evaluator
 from training.self_training_labeler import SelfTrainingLabeler
 from utils.metrics import compute_accuracy
+from training.training_metrics_computer import SupervisedTrainingMetricComputer
 
 import pdb
 
 random.seed(42)
+np.random.seed(42)
+torch.manual_seed(42)
 
 
 parser = argparse.ArgumentParser()
@@ -148,12 +151,15 @@ if not config.eval_only:
         config.save_dir + "training_metrics_log.jsonl"
     )
     dev_metrics_logger = JSONLLogger(config.save_dir + "dev_metrics_log.jsonl")
+    epoch_logger = JSONLLogger(config.save_dir + "epoch_logs.jsonl")
 
 logger.write_log("Reading data")
 
 labeled_dataset = LabeledDataset(config)
 
 self_training_labeler = SelfTrainingLabeler(config)
+
+training_set_metrics_computer = SupervisedTrainingMetricComputer(config)
 
 evaluator = Evaluator(config)
 
@@ -337,6 +343,13 @@ while patience_counter_for_adding_data <= config.patience_for_adding_data:
         dev_metrics = evaluator.run_model()
         dev_accuracy = dev_metrics["classification_accuracy"]
         dev_metrics_logger.write_log({"classification_accuracy": dev_accuracy})
+
+        training_set_metrics = training_set_metrics_computer.run_model(model, labeled_dataset)
+
+        log_dict = training_set_metrics
+        log_dict["dev_classification_accuracy"] = dev_metrics["classification_accuracy"]
+
+        epoch_logger.write_log(log_dict)
 
         logger.write_log("================================")
         logger.write_log("Dev acc: {}".format(dev_accuracy))

@@ -17,7 +17,7 @@ from transformers import AdamW
 from torch.optim import RMSprop
 
 
-from models.models import Model1
+from models.models import Model1, Model2
 from dataset_classes.imdb_dataset import IMDBDataset
 from utils.file_utils import create_dir, Logger
 from evaluation.evaluate_supervised import Evaluator
@@ -26,6 +26,8 @@ from utils.metrics import compute_accuracy
 import pdb
 
 random.seed(42)
+np.random.seed(42)
+torch.manual_seed(42)
 
 
 parser = argparse.ArgumentParser()
@@ -63,8 +65,11 @@ parser.add_argument("--small_data_size", type=int, default=-1)
 parser.add_argument("--eval_only", action="store_true")
 parser.add_argument("--training_topup", action="store_true")
 
+parser.add_argument("--entropy_loss_type", type=int, choices=[1, 2, 3], default=3)
+parser.add_argument("--loss_weight_entropy", type=float, default=0.05)
+
 parser.add_argument("--data_loader_num_workers", type=int, default=0)
-parser.add_argument("--model_to_use", type=int, choices=[1], default=1)
+parser.add_argument("--model_to_use", type=int, choices=[1, 2], default=1)
 
 parser.add_argument("--max_seq_len", type=int, default=250)
 
@@ -106,14 +111,11 @@ dataloader = DataLoader(
 logger.write_log("Building model")
 
 
-# if config.model_to_use == 1:
-#     model = Model1(config)
-# elif config.model_to_use == 2:
-#     model = SentenceSelector2(config)
-# elif config.model_to_use == 3:
-#     model = SentenceSelector3(config)
+if config.model_to_use == 1:
+    model = Model1(config)
+elif config.model_to_use == 2:
+    model = Model2(config)
 
-model = Model1(config)
 
 num_train_steps = int(
     (len(dataset) / config.train_batch_size / config.gradient_accumulation_steps)
@@ -250,8 +252,9 @@ for epoch in range(start_epoch, config.epochs):
 
         all_class_probabilities = model_outputs["class_probabilities"]
 
-        total_loss = cross_entropy_loss(
-            model_outputs["class_probabilities"], batch["label"]
+        total_loss = (
+            cross_entropy_loss(model_outputs["class_probabilities"], batch["label"])
+            + config.loss_weight_entropy * model_outputs["full_read_losses"]
         )
 
         if torch.isnan(total_loss).item():
@@ -357,10 +360,8 @@ for epoch in range(start_epoch, config.epochs):
         # found a model with better validation set accuracy
 
         best_dev_accuracy = dev_accuracy
-        snapshot_prefix = os.path.join(config.save_dir, "best_snapshot")
-        snapshot_path = snapshot_prefix + "_dev_f1_{}_iter_{}_model.pt".format(
-            dev_accuracy, iterations
-        )
+        snapshot_prefix = os.path.join(config.save_dir, "best.pt")
+        snapshot_path = snapshot_prefix
 
         # save model, delete previous 'best_snapshot' files
         # save model without the "DataParallel" part

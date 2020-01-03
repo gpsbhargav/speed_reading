@@ -36,6 +36,27 @@ Best dev metrics: 0.88392
 
 python train_supervised.py --save_dir /home/bhargav/projects/speed_reading_results/sup2/ --train_batch_size 100 --dev_batch_size 100 --lr 5e-4 --epochs 50 --max_grad_norm 0.1 --training_data ../preprocessed_data/preprocessed_train.pkl --dev_data ../preprocessed_data/preprocessed_test.pkl --embedding_matrix ../preprocessed_data/embedding_matrix.npy --log_every 50 --save_every 200 --early_stopping_patience 10 --data_loader_num_workers 8 --model_to_use 1 --optimizer rmsprop
 
+Best dev metrics: ~0.88
+
+python train_supervised.py --save_dir /home/bhargav/projects/speed_reading_results/sup3/ --train_batch_size 100 --dev_batch_size 100 --lr 5e-4 --epochs 50 --max_grad_norm 0.1 --training_data ../preprocessed_data/supervised/preprocessed_train.pkl --dev_data ../preprocessed_data/supervised/preprocessed_val.pkl --embedding_matrix ../preprocessed_data/supervised/embedding_matrix.npy --log_every 50 --save_every 200 --early_stopping_patience 10 --data_loader_num_workers 8 --model_to_use 1 --optimizer rmsprop
+
+Best dev metrics: ~0.8834
+
+
+# on 2k training data
+python train_supervised.py --save_dir /home/bhargav/projects/speed_reading_results/sup4/ --train_batch_size 100 --dev_batch_size 100 --lr 5e-4 --epochs 50 --max_grad_norm 0.1 --training_data ../preprocessed_data/small_supervised/preprocessed_train.pkl --dev_data ../preprocessed_data/small_supervised/preprocessed_val.pkl --embedding_matrix ../preprocessed_data/small_supervised/embedding_matrix.npy --log_every 10 --save_every 20 --early_stopping_patience 10 --data_loader_num_workers 8 --model_to_use 1 --optimizer rmsprop
+
+without entropy loss: Best dev metrics: 0.788
+with 0.01*entropy loss: Best dev metrics: 0.8375
+
+
+# Model2
+# on 2k training data
+python train_supervised.py --save_dir /home/bhargav/projects/speed_reading_results/sup5/ --train_batch_size 100 --dev_batch_size 100 --lr 5e-4 --epochs 50 --max_grad_norm 0.1 --training_data ../preprocessed_data/small_supervised/preprocessed_train.pkl --dev_data ../preprocessed_data/small_supervised/preprocessed_val.pkl --embedding_matrix ../preprocessed_data/small_supervised/embedding_matrix.npy --log_every 10 --save_every 20 --early_stopping_patience 10 --data_loader_num_workers 8 --model_to_use 2 --optimizer rmsprop
+
+Best dev metrics: 0.8375
+
+
 
 =================================================================
 RL 
@@ -98,9 +119,10 @@ classification_accuracy: 84-85%
 Read fraction: 8-15%
 
 
-# on t1
 # same as rl7. running again for plots
 python train_rl.py --save_dir /home/bhargav/projects/speed_reading_results/rl9/ --training_data ../preprocessed_data/preprocessed_train.pkl --dev_data ../preprocessed_data/preprocessed_test.pkl --embedding_matrix ../preprocessed_data/embedding_matrix.npy --log_every 5 --save_every 200 --early_stopping_patience 1000 --data_loader_num_workers 8 --model_to_use 1 --warm_start_checkpoint /home/bhargav/projects/speed_reading_results/sup2/best.pt --rl_algo ac --epochs 200 --loss_weight_actor 1.0 --loss_weight_critic 1.0 --loss_weight_classification 0.3 --loss_weight_entropy 0.01 --sent_skip_reward_multiplier 0.5 --step_reward_multiplier 0.4 --optimizer rmsprop
+
+max: 84%, 9%
 
 
 ------------------------------------------------
@@ -109,6 +131,22 @@ Cross entropy loss between action distribution and [0.5,0.5]
 # on t2
 # same as rl7 but with different entropy loss
 python train_rl.py --save_dir /home/bhargav/projects/speed_reading_results/rl10/ --training_data ../preprocessed_data/preprocessed_train.pkl --dev_data ../preprocessed_data/preprocessed_test.pkl --embedding_matrix ../preprocessed_data/embedding_matrix.npy --log_every 5 --save_every 200 --early_stopping_patience 1000 --data_loader_num_workers 8 --model_to_use 1 --warm_start_checkpoint /home/bhargav/projects/speed_reading_results/sup2/best.pt --rl_algo ac --epochs 200 --loss_weight_actor 1.0 --loss_weight_critic 1.0 --loss_weight_classification 0.3 --loss_weight_entropy 0.01 --sent_skip_reward_multiplier 0.5 --step_reward_multiplier 0.4 --optimizer rmsprop --entropy_loss_type 2
+
+max: 85% , 10%
+
+
+# same as rl10. running for plots
+python train_rl.py --save_dir /home/bhargav/projects/speed_reading_results/rl11/ --training_data ../preprocessed_data/supervised/preprocessed_train.pkl --dev_data ../preprocessed_data/supervised/preprocessed_val.pkl --embedding_matrix ../preprocessed_data/supervised/embedding_matrix.npy --log_every 5 --save_every 200 --early_stopping_patience 1000 --data_loader_num_workers 8 --model_to_use 1 --warm_start_checkpoint /home/bhargav/projects/speed_reading_results/sup3/best.pt --rl_algo ac --epochs 200 --loss_weight_actor 1.0 --loss_weight_critic 1.0 --loss_weight_classification 0.3 --loss_weight_entropy 0.01 --sent_skip_reward_multiplier 0.5 --step_reward_multiplier 0.4 --optimizer rmsprop --entropy_loss_type 2
+
+
+
+# same as rl10. but training set is 2k. 
+python train_rl.py --save_dir /home/bhargav/projects/speed_reading_results/rl12/ --training_data ../preprocessed_data/small_supervised/preprocessed_train.pkl --dev_data ../preprocessed_data/small_supervised/preprocessed_val.pkl --embedding_matrix ../preprocessed_data/small_supervised/embedding_matrix.npy --log_every 5 --save_every 20 --early_stopping_patience 1000 --data_loader_num_workers 8 --model_to_use 1 --warm_start_checkpoint /home/bhargav/projects/speed_reading_results/sup4/best.pt --rl_algo ac --epochs 100 --loss_weight_actor 1.0 --loss_weight_critic 1.0 --loss_weight_classification 0.3 --loss_weight_entropy 0.01 --sent_skip_reward_multiplier 0.5 --step_reward_multiplier 0.4 --optimizer rmsprop --entropy_loss_type 2
+
+
+
+# Model2. training set is 2k. 
+python train_rl.py --save_dir /home/bhargav/projects/speed_reading_results/rl13/ --training_data ../preprocessed_data/small_supervised/preprocessed_train.pkl --dev_data ../preprocessed_data/small_supervised/preprocessed_val.pkl --embedding_matrix ../preprocessed_data/small_supervised/embedding_matrix.npy --log_every 5 --save_every 20 --early_stopping_patience 1000 --data_loader_num_workers 8 --model_to_use 2 --warm_start_checkpoint /home/bhargav/projects/speed_reading_results/sup5/best.pt --rl_algo ac --epochs 100 --loss_weight_actor 1.0 --loss_weight_critic 1.0 --loss_weight_classification 0.3 --loss_weight_entropy 0.01 --sent_skip_reward_multiplier 0.5 --step_reward_multiplier 0.4 --optimizer rmsprop --entropy_loss_type 2
 
 
 
@@ -127,8 +165,10 @@ Ran till Iteration:9540
 Best Dev acc: 0.8018.  Not any better than just 2k labeled examples.
 
 
-# on t3
 python train_self_training.py --save_dir /home/bhargav/projects/speed_reading_results/st2/ --training_data ../preprocessed_data/semi_supervised/preprocessed_train.pkl --dev_data ../preprocessed_data/semi_supervised/preprocessed_val.pkl --embedding_matrix ../preprocessed_data/semi_supervised/embedding_matrix.npy --log_every 5 --model_to_use 1 --optimizer rmsprop --patience_for_adding_data 4 --patience_before_adding_data 6 --pseudo_label_threshold 0.95
+
+Ran till Iteration:6732
+Best Dev acc: 0.7888 Not any better than just 2k labeled examples.
 
 
 
